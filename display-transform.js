@@ -4,6 +4,7 @@ module.exports = displayTransform;
 function displayTransform(aString)
 {
     var result = require("jsx-transform").fromString(aString, { factory: "React.createElement" });
+    var escapedResult = require("js-string-escape")(result);
 
     return  "<div id = \"code\">\
                 <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.12.0/codemirror.css\">\
@@ -14,7 +15,7 @@ function displayTransform(aString)
                 <script type=\"text/javascript\">\
                         window.onload = function() {\
                             var myCodeMirror = CodeMirror(document.getElementById(\"code\"), {\
-                                value: \"${require('js-string-escape')(result)}\",\
+                                value: \"" + escapedResult + "\",\
                                 mode:  \"javascript\",\
                                 theme: \"neo\",\
                                 lineWrapping: true,\
