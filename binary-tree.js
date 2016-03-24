@@ -6,8 +6,8 @@ class BinaryTree
     {
         var value = options.value;
         var children = options.children;
-        var left = children.left;
-        var right = children.right;
+        var left = children[0];
+        var right = children[1];
 
         this.value = value;
         

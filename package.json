@@ -1,6 +1,6 @@
 {
   "name": "generic-jsx",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Generalized JSX supporting curried named parameters.",
   "main": "./generic-jsx",
   "repository": {
@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "immutable": "^3.7.6",
+    "js-string-escape": "^1.0.1",
     "jsx-transform": "^2.3.0"
   },
   "engines": {
