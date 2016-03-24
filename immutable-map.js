@@ -8,9 +8,9 @@ function Map(options)
     return new I.Map(options.children.map(aChild => aChild()));
 }
 
-exports.Map = Map;
-
 Map.Entry = function(options)
 {
     return [options.key, options.value];
 }
+
+module.exports = Map;
