@@ -1,0 +1,19 @@
+{
+  "name": "generic-jsx",
+  "version": "1.0.0",
+  "description": "Generalized JSX supporting curried named parameters.",
+  "main": "./generic-jsx",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tolmasky/generic-jsx"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Francisco Ryan Tolmasky I",
+  "license": "MIT",
+  "dependencies": {
+    "immutable": "^3.7.6",
+    "jsx-transform": "^2.3.0"
+  }
+}
