@@ -15,9 +15,9 @@ function curry(resolver)
         return function(args)
         {
             if (args && args[ArgumentsSymbol])
-                return call(aFunction, [map(Object.assign({ }, boundArguments, args))]);
+                return call(aFunction, map(Object.assign({ }, boundArguments, args)));
         
-            return call(aFunction, [map(Object.assign({ [ArgumentsSymbol]: true }, boundArguments, arguments))]);
+            return call(aFunction, map(Object.assign({ [ArgumentsSymbol]: true }, boundArguments, arguments)));
         }
 
         function map(args)
@@ -50,16 +50,16 @@ function from(aKey)
     return { [FromSymbol]: aKey };
 }
 
-function call(aFunction, args)
+function call(aFunction, properties)
 {
     try
     {
-        return aFunction(...args);
+        return aFunction(properties);
     }
     catch (e)
     {
         if (e.message.indexOf("new") !== -1)
-            return new aFunction(...args);
+            return new aFunction(properties);
 
         throw e;
     }
