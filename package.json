@@ -1,6 +1,6 @@
 {
   "name": "generic-jsx",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Generalized JSX supporting curried named parameters.",
   "main": "./generic-jsx",
   "repository": {
@@ -19,5 +19,6 @@
   },
   "engines": {
     "node": "4.x.x"
-  }
+  },
+  "tonicExampleFilename": "tonicExample.js"
 }
