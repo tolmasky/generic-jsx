@@ -1,6 +1,9 @@
 var FromSymbol = Symbol("from");
 var ArgumentsSymbol = Symbol("arguments");
 
+var ArrayConcat = Array.prototype.concat;
+var ArraySlice = Array.prototype.slice;
+
 function curry(resolver)
 {
     return function(aFunctionName, boundArguments)
@@ -8,15 +11,18 @@ function curry(resolver)
         var aFunction = (typeof aFunctionName === "string") ?
                         resolver(aFunctionName) :
                         aFunctionName;
+        var mergedChildren = ArrayConcat.call(boundArguments && boundArguments.children || [], ArraySlice.apply(arguments, [2]));
 
-        boundArguments = Object.assign({}, boundArguments,
-                                       { children: Array.prototype.slice.apply(arguments, [2]) });
+        boundArguments = Object.assign({}, boundArguments, { children: mergedChildren });
 
         return function(args)
         {
             if (args && args[ArgumentsSymbol])
-                return call(aFunction, map(Object.assign({ }, boundArguments, args)));
-        
+            {
+                var mergedChildren = ArrayConcat.call(boundArguments.children || [], args.children || []);
+                return call(aFunction, map(Object.assign({ }, boundArguments, args, { children: mergedChildren })));
+            }
+
             return call(aFunction, map(Object.assign({ [ArgumentsSymbol]: true }, boundArguments, arguments)));
         }
 
