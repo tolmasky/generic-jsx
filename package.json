@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-helper-builder-react-jsx": "^6.9.0",
+    "babel-plugin-syntax-jsx": "^6.13.0",
     "immutable": "^3.7.6",
     "js-string-escape": "^1.0.1",
     "jsx-transform": "^2.3.0"
