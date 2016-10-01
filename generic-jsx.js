@@ -1,5 +1,6 @@
 var FromSymbol = Symbol("from");
 var ArgumentsSymbol = Symbol("arguments");
+var BaseSymbol = Symbol("base");
 
 var ArrayConcat = Array.prototype.concat;
 var ArraySlice = Array.prototype.slice;
@@ -15,7 +16,7 @@ function curry(resolver)
 
         boundArguments = Object.assign({}, boundArguments, { children: mergedChildren });
 
-        return function(args)
+        return Object.assign(function(args)
         {
             if (args && args[ArgumentsSymbol])
             {
@@ -24,7 +25,7 @@ function curry(resolver)
             }
 
             return call(aFunction, map(Object.assign({ [ArgumentsSymbol]: true }, boundArguments, arguments)));
-        }
+        }, { [BaseSymbol]: base(aFunction) });
 
         function map(args)
         {
@@ -73,3 +74,9 @@ function call(aFunction, properties)
 
 module.exports.from = from;
 module.exports.curry = curry;
+module.exports.base = base;
+
+function base(aFunction)
+{
+    return aFunction[BaseSymbol] || aFunction
+};
