@@ -29,7 +29,7 @@ function curry(resolver)
 
         function map(args)
         {
-            if (!Object.keys(args).some(key => args[key][FromSymbol] !== undefined))
+            if (!Object.keys(args).some(key => args[key] && args[key][FromSymbol] !== undefined))
                 return args;
 
             var adjusted = { [ArgumentsSymbol]: true };
