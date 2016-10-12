@@ -21,7 +21,7 @@
     "jsx-transform": "^2.3.0"
   },
   "engines": {
-    "node": "4.x.x"
+    "node": ">=4.x.x"
   },
   "tonicExampleFilename": "tonicExample.js"
 }
