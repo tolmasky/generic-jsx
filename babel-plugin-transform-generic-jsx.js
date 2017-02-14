@@ -1,4 +1,4 @@
-var curry = "(require(\"generic-jsx\").curry(_=>_))";
+var curry = "(require(\"generic-jsx\").curry)";
 var insertion = require("babylon").parse(curry).program.body[0].expression;
 
 var plugin = function plugin(options)
