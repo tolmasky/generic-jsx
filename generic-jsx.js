@@ -1,54 +1,64 @@
 var FromSymbol = Symbol("from");
 var ArgumentsSymbol = Symbol("arguments");
+var UnmappedArgumentsSymbol = Symbol("unmappedArguments");
 var BaseSymbol = Symbol("base");
+
+var Apply = (Function.prototype.call).bind(Function.prototype.apply);
+var Call = Function.prototype.call.bind(Function.prototype.call);
 
 var ArrayConcat = Array.prototype.concat;
 var ArraySlice = Array.prototype.slice;
 
-function curry(resolver)
+function curry(aFunction, newArguments)
 {
-    return function(aFunctionName, boundArguments)
+    var syntacticChildren = Call(ArraySlice, arguments, 2);
+    
+    var previousArguments = aFunction[UnmappedArgumentsSymbol] || { };
+
+    var syntacticChildren = Call(ArraySlice, arguments, 2);
+    var children = syntacticChildren.length ? syntacticChildren : newArguments && newArguments.children || previousArguments.children || [];
+
+    var currentArguments = Object.assign({ }, previousArguments, newArguments, { children: children });
+
+    var baseFunction = base(aFunction);
+    
+    return Object.defineProperty(
+    Object.assign(function _(attributes)
     {
-        var aFunction = (typeof aFunctionName === "string") ?
-                        resolver(aFunctionName) :
-                        aFunctionName;
-        var mergedChildren = ArrayConcat.call(boundArguments && boundArguments.children || [], ArraySlice.apply(arguments, [2]));
+        var args = map(Object.assign({ }, currentArguments, attributes, arguments));
 
-        boundArguments = Object.assign({}, boundArguments, { children: mergedChildren });
+        if (this instanceof _)
+            return new (baseFunction(args));
 
-        return Object.assign(function(args)
-        {
-            if (args && args[ArgumentsSymbol])
-            {
-                var mergedChildren = ArrayConcat.call(boundArguments.children || [], args.children || []);
-                return call(aFunction, map(Object.assign({ }, boundArguments, args, { children: mergedChildren })));
-            }
+        return baseFunction(args);
+    },
+    {
+        [BaseSymbol]: base(aFunction),
+        [ArgumentsSymbol]: map(currentArguments),
+        [UnmappedArgumentsSymbol]: currentArguments
+    }), "name", { value: baseFunction.name });
 
-            return call(aFunction, map(Object.assign({ [ArgumentsSymbol]: true }, boundArguments, arguments)));
-        }, { [BaseSymbol]: base(aFunction) });
+    function map(args)
+    {
+        if (!Object.keys(args).some(key => args[key] && args[key][FromSymbol] !== undefined))
+            return args;
 
-        function map(args)
-        {
-            if (!Object.keys(args).some(key => args[key] && args[key][FromSymbol] !== undefined))
-                return args;
+        var adjusted = { };
 
-            var adjusted = { [ArgumentsSymbol]: true };
+        for (var key of Object.keys(args))
+            adjusted[key] = exhaust(key, args);
 
-            for (var key of Object.keys(args))
-                adjusted[key] = exhaust(key, args);
+        return adjusted;            
+    }
 
-            return adjusted;            
-        }
+    function exhaust(key, args)
+    {
+        var value = args[key];
 
-        function exhaust(key, args)
-        {
-            var value = args[key];
+        if (value && value[FromSymbol] !== undefined)
+            return exhaust(value[FromSymbol], args);
 
-            if (value && value[FromSymbol] !== undefined)
-                return exhaust(value[FromSymbol], args);
-
-            return args[key];
-        }
+        return args[key];
     }
 }
 
@@ -57,24 +67,15 @@ function from(aKey)
     return { [FromSymbol]: aKey };
 }
 
-function call(aFunction, properties)
-{
-    try
-    {
-        return aFunction(properties);
-    }
-    catch (e)
-    {
-        if (e.message.indexOf("new") !== -1)
-            return new aFunction(properties);
-
-        throw e;
-    }
-}
-
 module.exports.from = from;
 module.exports.curry = curry;
 module.exports.base = base;
+module.exports.getArguments = getArguments;
+
+function getArguments(aFunction)
+{
+    return aFunction[ArgumentsSymbol] || { children:[] };
+}
 
 function base(aFunction)
 {
