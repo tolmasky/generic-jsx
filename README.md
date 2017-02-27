@@ -1,7 +1,7 @@
 
 You can find a full explanation of the ideas behind this [here](http://tolmasky.com/2016/03/24/generalizing-jsx/).
 
-Or, try it on [Tonic](https://tonicdev.com/npm/generic-jsx)!
+Or, try it on [RunKit](https://runkit.com/npm/generic-jsx)!
 
 # Generic JSX
 

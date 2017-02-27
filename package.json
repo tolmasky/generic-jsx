@@ -23,5 +23,5 @@
   "engines": {
     "node": ">=4.x.x"
   },
-  "tonicExampleFilename": "tonicExample.js"
+  "runkitExampleFilename": "runkitExample.js"
 }
