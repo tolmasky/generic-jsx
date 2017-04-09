@@ -10,13 +10,20 @@ var plugin = function plugin(options)
         {
             state.args.push(state.tagExpr);
             state.callee = file.curryID;
+            
+            if (file.insertDeclaration)
+                file.insertDeclaration();
         }
     });
 
     visitor.Program = function(aPath, aState)
     {
         aPath.hub.file.curryID = aPath.scope.generateUidIdentifierBasedOnNode(types.identifier("curry"));
-        aPath.scope.push({ id: aPath.hub.file.curryID, init: declaration });
+        aPath.hub.file.insertDeclaration = function ()
+        {
+            aPath.scope.push({ id: aPath.hub.file.curryID, init: declaration });
+            delete aPath.hub.file.insertDeclaration;
+        }
     }
 
     return  {
