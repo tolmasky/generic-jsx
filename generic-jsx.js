@@ -71,6 +71,7 @@ module.exports.from = from;
 module.exports.curry = curry;
 module.exports.base = base;
 module.exports.getArguments = getArguments;
+module.exports.JSXPragma = JSXPragma;
 
 function getArguments(aFunction)
 {
@@ -81,3 +82,14 @@ function base(aFunction)
 {
     return aFunction[BaseSymbol] || aFunction
 };
+
+function JSXPragma(evalInScope)
+{
+    return function (_, args)
+    {
+        var children = ArraySlice.call(arguments, 2);
+
+        return curry(evalInScope(_), Object.assign({ }, args, { children: children || [] }));
+    }
+}
+
