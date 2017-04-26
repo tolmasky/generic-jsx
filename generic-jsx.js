@@ -12,7 +12,7 @@ var ArraySlice = Array.prototype.slice;
 function curry(aFunction, newArguments)
 {
     var syntacticChildren = Call(ArraySlice, arguments, 2);
-    
+
     var previousArguments = aFunction[UnmappedArgumentsSymbol] || { };
 
     var syntacticChildren = Call(ArraySlice, arguments, 2);
@@ -21,16 +21,24 @@ function curry(aFunction, newArguments)
     var currentArguments = Object.assign({ }, previousArguments, newArguments, { children: children });
 
     var baseFunction = base(aFunction);
-    
+
     return Object.defineProperty(
     Object.assign(function _(attributes)
     {
         var args = map(Object.assign({ }, currentArguments, attributes, arguments));
 
-        if (baseFunction.prototype && baseFunction.prototype.constructor === baseFunction)
-            return new baseFunction(args);
+        try
+        {
+            return baseFunction(args);
+        }
+        catch (anException)
+        {
+            if (anException instanceof TypeError &&
+                /cannot be invoked without 'new'$/.test(anException.message))
+                return new baseFunction(args);
 
-        return baseFunction(args);
+            throw anException;
+        }
     },
     {
         [BaseSymbol]: base(aFunction),
@@ -48,7 +56,7 @@ function curry(aFunction, newArguments)
         for (var key of Object.keys(args))
             adjusted[key] = exhaust(key, args);
 
-        return adjusted;            
+        return adjusted;
     }
 
     function exhaust(key, args)
