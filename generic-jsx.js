@@ -28,7 +28,7 @@ function curry(aFunction, newArguments)
         var args = map(Object.assign({ }, currentArguments, attributes, arguments));
 
         if (baseFunction.prototype && baseFunction.prototype.constructor === baseFunction)
-            return new (baseFunction(args));
+            return new baseFunction(args);
 
         return baseFunction(args);
     },
