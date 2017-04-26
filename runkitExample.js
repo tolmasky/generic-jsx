@@ -1,18 +1,17 @@
 /* @jsx (JSXPragma(_=>eval(_))) */
 
 const { JSXPragma, from } = require("generic-jsx");
-const BinaryTree = require("generic-jsx/binary-tree");
 
-// BinaryTree is an ES6 class that we can curry using JSX:
-var Division = <BinaryTree value = "/"/>;
-var Addition = <BinaryTree value = "+"/>;
-var Number = <BinaryTree value = { from(0) }/>;
+function reduce({ initial, items, reducer })
+{
+    var result = initial;
 
+    for (const item of items)
+        result = reducer(initial, item);
 
-<Division>
-    { Number(5) }
-    <Addition>
-        { Number(4) }
-        { Number(6) }
-    </Addition>
-</Division>()
+    return result;
+}
+
+const sum = <reduce initial = { 0 }
+                    items = { from("numbers") }
+                    reducer = { (a, b) => a + b } />;
