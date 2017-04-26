@@ -1,6 +1,7 @@
-/* @jsx (curry(_=>eval(_))) */
-var { curry, from } = require("generic-jsx");
-var BinaryTree = require("generic-jsx/binary-tree");
+/* @jsx (JSXPragma(_=>eval(_))) */
+
+const { JSXPragma, from } = require("generic-jsx");
+const BinaryTree = require("generic-jsx/binary-tree");
 
 // BinaryTree is an ES6 class that we can curry using JSX:
 var Division = <BinaryTree value = "/"/>;
