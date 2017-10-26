@@ -1,73 +1,97 @@
-var FromSymbol = Symbol("from");
-var ArgumentsSymbol = Symbol("arguments");
-var UnmappedArgumentsSymbol = Symbol("unmappedArguments");
-var BaseSymbol = Symbol("base");
+const { inspect } = require("util");
 
-var Apply = (Function.prototype.call).bind(Function.prototype.apply);
-var Call = Function.prototype.call.bind(Function.prototype.call);
+const FromSymbol = Symbol.for("generic-jsx:from");
+const ArgumentsSymbol = Symbol.for("generic-jsx:arguments");
+const UnmappedArgumentsSymbol = Symbol.for("generic-jsx:unmapped-arguments");
+const BaseSymbol = Symbol.for("generic-jsx:base");
 
-var ArrayConcat = Array.prototype.concat;
-var ArraySlice = Array.prototype.slice;
+const Call = Function.prototype.call.bind(Function.prototype.call);
+
+const ArrayConcat = Array.prototype.concat;
+const ArraySlice = Array.prototype.slice;
+
+const FunctionToString = Function.prototype.toString;
+
+const ObjectAssign = Object.assign;
+const ObjectDefineProperty = Object.defineProperty;
+
+const EmptyObject = Object.create(null);
+
 
 function curry(aFunction, newArguments)
 {
-    var syntacticChildren = Call(ArraySlice, arguments, 2);
+    const syntacticChildren = Call(ArraySlice, arguments, 2);
+    const previousArguments = aFunction[UnmappedArgumentsSymbol] || false;
+    const children = syntacticChildren.length > 0 ?
+        syntacticChildren :
+        copyChildren(newArguments) ||
+        copyChildren(previousArguments) || [];
 
-    var previousArguments = aFunction[UnmappedArgumentsSymbol] || { };
-
-    var syntacticChildren = Call(ArraySlice, arguments, 2);
-    var children = syntacticChildren.length ? syntacticChildren : newArguments && newArguments.children || previousArguments.children || [];
-
-    var currentArguments = Object.assign({ }, previousArguments, newArguments, { children: children });
-
-    var baseFunction = base(aFunction);
-
-    return Object.defineProperty(
-    Object.assign(function _(attributes)
+    const baseFunction = base(aFunction);
+    const currentArguments = ObjectAssign({ },
+        previousArguments, newArguments, { children });
+    const curried = function _(attributes)
     {
-        var args = map(Object.assign({ }, currentArguments, attributes, arguments));
+        const args = resolveFroms(ObjectAssign({ },
+            currentArguments, attributes, arguments));
 
-        try
-        {
-            return baseFunction(args);
-        }
-        catch (anException)
-        {
-            if (anException instanceof TypeError &&
-                /cannot be invoked without 'new'$/.test(anException.message))
-                return new baseFunction(args);
-
-            throw anException;
-        }
-    },
-    {
-        [BaseSymbol]: base(aFunction),
-        [ArgumentsSymbol]: map(currentArguments),
-        [UnmappedArgumentsSymbol]: currentArguments
-    }), "name", { value: baseFunction.name });
-
-    function map(args)
-    {
-        if (!Object.keys(args).some(key => args[key] && args[key][FromSymbol] !== undefined))
-            return args;
-
-        var adjusted = { };
-
-        for (var key of Object.keys(args))
-            adjusted[key] = exhaust(key, args);
-
-        return adjusted;
+        return Call(baseFunction, this, args);
     }
 
-    function exhaust(key, args)
+    ObjectAssign(curried,
     {
-        var value = args[key];
+        [BaseSymbol]: baseFunction,
+        // FIXME: Make this a getter?
+        [ArgumentsSymbol]: resolveFroms(currentArguments),
+        [UnmappedArgumentsSymbol]: currentArguments,
+        toString: curriedToString
+    });
+    ObjectDefineProperty(curried, "name", { value: baseFunction.name });
 
-        if (value && value[FromSymbol] !== undefined)
-            return exhaust(value[FromSymbol], args);
+    return curried;
+}
 
-        return args[key];
-    }
+function curriedToString()
+{
+    const baseFunction = base(this);
+    const args = getArguments(this);
+
+    return Call(FunctionToString, baseFunction) + "/* curried: " + inspect(args) + " */";
+}
+
+function copyChildren(args)
+{
+    if (args && args.children)
+        return Call(ArraySlice, args, 0);
+
+    return false;
+}
+
+function resolveFroms(args)
+{
+    const keys = Object.keys(args);
+    const hasFrom = keys.some(
+        key => args[key] && args[key][FromSymbol] !== undefined);
+
+    if (!hasFrom)
+        return args;
+
+    const adjusted = { };
+
+    for (const key of keys)
+        adjusted[key] = exhaust(key, args);
+
+    return adjusted;
+}
+
+function exhaust(key, args)
+{
+    const value = args[key];
+
+    if (value && value[FromSymbol] !== undefined)
+        return exhaust(value[FromSymbol], args);
+
+    return value;
 }
 
 function from(aKey)
@@ -88,7 +112,7 @@ function getArguments(aFunction)
 
 function base(aFunction)
 {
-    return aFunction[BaseSymbol] || aFunction
+    return aFunction[BaseSymbol] || aFunction;
 };
 
 function JSXPragma(evalInScope)
