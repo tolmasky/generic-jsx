@@ -62,7 +62,7 @@ function curriedToString()
 function copyChildren(args)
 {
     if (args && args.children)
-        return Call(ArraySlice, args, 0);
+        return Call(ArraySlice, args.children, 0);
 
     return false;
 }
