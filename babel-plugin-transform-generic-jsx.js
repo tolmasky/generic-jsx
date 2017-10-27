@@ -1,10 +1,7 @@
 
-var declaration = require("babylon").parse("require(\"generic-jsx\").curry").program.body[0].expression;
-
-var plugin = function plugin(options)
+module.exports = function plugin({ types: t })
 {
-    var types = options.types;
-    var visitor = require("babel-helper-builder-react-jsx")(
+    const visitor = require("babel-helper-builder-react-jsx")(
     {
         pre: function(state, { file })
         {
@@ -15,10 +12,15 @@ var plugin = function plugin(options)
                 file.insertDeclaration();
         }
     });
+    const declaration = t.memberExpression(
+        t.callExpression(
+            t.identifier("require"),
+            [t.stringLiteral("generic-jsx")]),
+        t.identifier("curry"));
 
     visitor.Program = function(aPath, aState)
     {
-        aPath.hub.file.curryID = aPath.scope.generateUidIdentifierBasedOnNode(types.identifier("curry"));
+        aPath.hub.file.curryID = aPath.scope.generateUidIdentifierBasedOnNode(t.identifier("curry"));
         aPath.hub.file.insertDeclaration = function ()
         {
             aPath.scope.push({ id: aPath.hub.file.curryID, init: declaration });
@@ -31,5 +33,3 @@ var plugin = function plugin(options)
                 visitor: visitor
             };
 }
-
-module.exports = plugin;
