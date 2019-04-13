@@ -1,7 +1,7 @@
-
 module.exports = function plugin({ types: t })
 {
-    const visitor = require("babel-helper-builder-react-jsx")(
+    const helper = require("@babel/helper-builder-react-jsx").default;
+    const visitor = helper(
     {
         pre: function(state, { file })
         {
@@ -29,7 +29,8 @@ module.exports = function plugin({ types: t })
     }
 
     return  {
-                inherits: require("babel-plugin-syntax-jsx"),
+                name: "transform-generic-jsx",
+                inherits: require("@babel/plugin-syntax-jsx").default,
                 visitor: visitor
             };
 }
