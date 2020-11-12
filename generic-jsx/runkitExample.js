@@ -1,7 +1,7 @@
 /* @jsx (JSXPragma(_=>eval(_))) */
 
 const { JSXPragma, from } = require("generic-jsx");
-const BinaryTree = require("generic-jsx/binary-tree");
+const BinaryTree = require("@generic-jsx/examples/binary-tree");
 
 // BinaryTree is an ES6 class that we can curry using JSX:
 var Division = <BinaryTree value = "/"/>;

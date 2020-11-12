@@ -1,22 +1,19 @@
 "use strict";
 
-class BinaryTree
+function BinaryTree(options)
 {
-    constructor(options)
-    {
-        var value = options.value;
-        var children = options.children;
-        var left = children[0];
-        var right = children[1];
+    if (!(this instanceof BinaryTree))
+        return new BinaryTree(options);
 
-        this.value = value;
-        
-        if (left)
-            this.left = typeof left === "function" ? left() : left;
+    const [left, right] = options.children || [];
 
-        if (right)
-            this.right = typeof right === "function" ? right() : right;
-    }
+    this.value = options.value;
+
+    if (left)
+        this.left = typeof left === "function" ? left() : left;
+
+    if (right)
+        this.right = typeof right === "function" ? right() : right;
 }
 
 module.exports = BinaryTree;
