@@ -1,36 +1,61 @@
-module.exports = function plugin({ types: t })
-{
-    const helper = require("@babel/helper-builder-react-jsx").default;
-    const visitor = helper(
-    {
-        pre: function(state, { file })
-        {
-            state.args.push(state.tagExpr);
-            state.callee = file.curryID;
-            
-            if (file.insertDeclaration)
-                file.insertDeclaration();
-        }
-    });
-    const declaration = t.memberExpression(
-        t.callExpression(
-            t.identifier("require"),
-            [t.stringLiteral("generic-jsx")]),
-        t.identifier("curry"));
+const fail = message => { throw Error(message) };
 
-    visitor.Program = function(aPath, aState)
+const toCurriedAttributes = (t, attributes, children) =>
+    t.ObjectExpression(attributes
+            .map(({ name, value }) =>
+                t.ObjectProperty(
+                    t.Identifier(name.name),
+                    toAttributeValue(t, value)))
+            .concat(
+                t.ObjectProperty(
+                    t.Identifier("children"),
+                    t.ArrayExpression(children))));
+
+const toAttributeValue = (t, value) =>
+    value === null ? t.BooleanLiteral(true) :
+    t.isStringLiteral(value) ? value :
+    t.isJSXExpressionContainer(value) ? value.expression :
+    fail(`Unexpected ${value.type} in JSX element`);
+
+const toCurriedFunction = (t, curry, { openingElement, children }) =>
+    t.CallExpression((curry.used = true) && curry,
+    [
+        t.Identifier(openingElement.name.name),
+        toCurriedAttributes(t, openingElement.attributes, children)
+    ]);
+
+module.exports = ({ Plugin, types: t }) =>
+({
+    visitor:
     {
-        aPath.hub.file.curryID = aPath.scope.generateUidIdentifierBasedOnNode(t.identifier("curry"));
-        aPath.hub.file.insertDeclaration = function ()
+        JSXElement: (path, { curry }) => void(path
+            .replaceWith(toCurriedFunction(t, curry, path.node))),
+
+        Program:
         {
-            aPath.scope.push({ id: aPath.hub.file.curryID, init: declaration });
-            delete aPath.hub.file.insertDeclaration;
+            enter: (path, file)  => void(
+                !file.curry &&
+                path.replaceWith(t.Program(
+                [
+                    t.VariableDeclaration("const",
+                    [
+                        t.VariableDeclarator(
+                            file.curry =
+                                path.scope.generateUidIdentifier("curry"),
+                            t.MemberExpression(
+                                t.CallExpression(
+                                    t.Identifier("require"),
+                                    [t.StringLiteral("generic-jsx")]),
+                                t.Identifier("curry"))),
+                    ]),
+                    ...path.node.body
+                ]))),
+
+            exit: (path, file) => void(
+                !file.curry.used &&
+                !file.removed &&
+                (file.removed = true) &&
+                path.replaceWith(t.Program(path.node.body.slice(1))))
         }
     }
-
-    return  {
-                name: "transform-generic-jsx",
-                inherits: require("@babel/plugin-syntax-jsx").default,
-                visitor: visitor
-            };
-}
+})
