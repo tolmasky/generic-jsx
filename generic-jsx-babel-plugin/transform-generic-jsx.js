@@ -24,24 +24,37 @@ const toCurriedFunction = (t, curry, { openingElement, children }) =>
         toCurriedAttributes(t, openingElement.attributes, children)
     ]);
 
-module.exports = ({ Plugin, types: t }) =>
+const get = (state, name) =>
+  state.get(`@generic-jsx/plugin-generic-jsx/${name}`);
+const set = (state, name, value) =>
+  (state.set(`@generic-jsx/plugin-generic-jsx/${name}`, value), value);
+
+module.exports = ({ types: t }) =>
 ({
+    manipulateOptions: (_, parserOptions) =>
+        parserOptions.plugins.push("jsx"),
+
     visitor:
     {
-        JSXElement: (path, { curry }) => void(path
-            .replaceWith(toCurriedFunction(t, curry, path.node))),
+        JSXElement: (path, state) => void(path
+            .replaceWith(toCurriedFunction(
+                t,
+                get(state, "curry-identifier"),
+                path.node))),
 
         Program:
         {
-            enter: (path, file)  => void(
-                !file.curry &&
+            enter: (path, state)  => void(
+                !get(state, "curry-identifier") &&
                 path.replaceWith(t.Program(
                 [
                     t.VariableDeclaration("const",
                     [
                         t.VariableDeclarator(
-                            file.curry =
-                                path.scope.generateUidIdentifier("curry"),
+                            set(
+                                state,
+                                "curry-identifier",
+                                path.scope.generateUidIdentifier("curry")),
                             t.MemberExpression(
                                 t.CallExpression(
                                     t.Identifier("require"),
@@ -51,11 +64,11 @@ module.exports = ({ Plugin, types: t }) =>
                     ...path.node.body
                 ]))),
 
-            exit: (path, file) => void(
-                !file.curry.used &&
-                !file.removed &&
-                (file.removed = true) &&
+            exit: (path, state) => void(
+                !get(state, "curry-identifier").used &&
+                !get(state, "curry-removed") &&
+                set(state, "curry-removed", true) &&
                 path.replaceWith(t.Program(path.node.body.slice(1))))
         }
     }
-})
+});
