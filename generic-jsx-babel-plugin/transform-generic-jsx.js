@@ -12,6 +12,17 @@ const toCurriedAttributes = (t, attributes, children) =>
                     t.ArrayExpression(children
                         .map(child => toChildValue(t, child))))));
 
+const toExpression = (t, node) =>
+    t.isJSXIdentifier(node) ?
+        t.Identifier(node.name) :
+    t.isJSXMemberExpression(node) ?
+        t.MemberExpression(
+            toExpression(t, node.object),
+            toExpression(t, node.property)) :
+    t.isJSXExpressionContainer(node) ?
+        node.expression :
+    fail(`Unexpected ${node.type} in JSX element`);
+
 const toChildValue = (t, child) =>
     t.isJSXText(child) ? t.StringLiteral(child.extra.raw) :
     t.isJSXExpressionContainer(child) ? child.expression :
@@ -26,7 +37,7 @@ const toAttributeValue = (t, value) =>
 const toCurriedFunction = (t, curry, { openingElement, children }) =>
     t.CallExpression((curry.used = true) && curry,
     [
-        t.Identifier(openingElement.name.name),
+        toExpression(t, openingElement.name),
         toCurriedAttributes(t, openingElement.attributes, children)
     ]);
 
