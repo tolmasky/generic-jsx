@@ -2,15 +2,13 @@ const fail = message => { throw Error(message) };
 
 const toCurriedAttributes = (t, attributes, children) =>
     t.ObjectExpression(attributes
-            .map(({ name, value }) =>
-                t.ObjectProperty(
-                    t.Identifier(name.name),
-                    toAttributeValue(t, value)))
-            .concat(
-                t.ObjectProperty(
-                    t.Identifier("children"),
-                    t.ArrayExpression(children
-                        .map(child => toChildValue(t, child))))));
+        .map(JSXAttributeToObjectProperty(t))
+        .concat(
+            t.ObjectProperty(
+                t.Identifier("children"),
+                t.ArrayExpression(children
+                    .map(child => toChildValue(t, child))
+                    .filter(child => !t.isJSXEmptyExpression(child))))));
 
 const toExpression = (t, node) =>
     t.isJSXIdentifier(node) ?
@@ -28,6 +26,13 @@ const toChildValue = (t, child) =>
     t.isJSXExpressionContainer(child) ? child.expression :
     child;
 
+const JSXAttributeToObjectProperty = t => node =>
+    t.isJSXSpreadAttribute(node) ?
+        t.SpreadElement(node.argument) :
+        t.ObjectProperty(
+            t.Identifier(node.name.name),
+            toAttributeValue(t, node.value));
+
 const toAttributeValue = (t, value) =>
     value === null ? t.BooleanLiteral(true) :
     t.isStringLiteral(value) ? value :
@@ -39,6 +44,18 @@ const toCurriedFunction = (t, curry, { openingElement, children }) =>
     [
         toExpression(t, openingElement.name),
         toCurriedAttributes(t, openingElement.attributes, children)
+    ]);
+
+const toImportStatement = (t, as, source) =>
+    t.VariableDeclaration("const",
+    [
+        t.VariableDeclarator(
+            as,
+            t.MemberExpression(
+                t.CallExpression(
+                    t.Identifier("require"),
+                    [t.StringLiteral(source)]),
+                t.Identifier("curry"))),
     ]);
 
 const get = (state, name) =>
@@ -65,19 +82,13 @@ module.exports = ({ types: t }) =>
                 !get(state, "curry-identifier") &&
                 path.replaceWith(t.Program(
                 [
-                    t.VariableDeclaration("const",
-                    [
-                        t.VariableDeclarator(
-                            set(
-                                state,
-                                "curry-identifier",
-                                path.scope.generateUidIdentifier("curry")),
-                            t.MemberExpression(
-                                t.CallExpression(
-                                    t.Identifier("require"),
-                                    [t.StringLiteral("generic-jsx")]),
-                                t.Identifier("curry"))),
-                    ]),
+                    toImportStatement(
+                        t,
+                        set(
+                            state,
+                            "curry-identifier",
+                            path.scope.generateUidIdentifier("curry")),
+                        state.opts.importSource || "generic-jsx"),
                     ...path.node.body
                 ]))),
 
