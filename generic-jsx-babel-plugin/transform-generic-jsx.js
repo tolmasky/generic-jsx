@@ -9,7 +9,13 @@ const toCurriedAttributes = (t, attributes, children) =>
             .concat(
                 t.ObjectProperty(
                     t.Identifier("children"),
-                    t.ArrayExpression(children))));
+                    t.ArrayExpression(children
+                        .map(child => toChildValue(t, child))))));
+
+const toChildValue = (t, child) =>
+    t.isJSXText(child) ? t.StringLiteral(child.extra.raw) :
+    t.isJSXExpressionContainer(child) ? child.expression :
+    child;
 
 const toAttributeValue = (t, value) =>
     value === null ? t.BooleanLiteral(true) :
