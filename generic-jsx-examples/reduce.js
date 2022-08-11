@@ -1,5 +1,4 @@
-
-function reduce(options)
+module.exports = function reduce(options)
 {
     var array = options.array;
     var initial = options.initial;
@@ -14,5 +13,3 @@ function reduce(options)
 
     return result;
 }
-
-module.exports = reduce;

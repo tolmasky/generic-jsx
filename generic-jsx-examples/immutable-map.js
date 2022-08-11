@@ -1,16 +1,14 @@
+const I = require("immutable");
 
-var I = require("immutable");
 
-function Map(options)
+function Map(...entries)
 {
-    var children = options.children;
-
-    return new I.Map(options.children.map(aChild => aChild()));
+    return new I.Map(entries.map(child => child()));
 }
 
-Map.Entry = function(options)
+Map.Entry = function(key, value)
 {
-    return [options.key, options.value];
+    return [key, value];
 }
 
 module.exports = Map;

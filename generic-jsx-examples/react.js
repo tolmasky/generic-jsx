@@ -1,36 +1,23 @@
-
-
-function CSSToString(style)
-{
-    return "\"" + Object.keys(style).reduce(function (a,b)
-    {
-        return (a + b + ":" + style[b] + ";")
-    }, "") + "\"";
-}
+const doublequote = string => `"${string.replace(/"/g, `\\"`)}"`;
+const CSSToString = style => doublequote(Object
+    .entries(style)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join("; "));
 
 exports.CSSToString = CSSToString;
 
-function element(name)
-{
-    return function(options)
-    {
-        var style = options.style;
-        var children = options.children;
-
-        return "<" + name + (style ? " style = " + CSSToString(style) : "") + ">" + children.map(render).join("") + "</" + name + ">";
-    }
-}
+const element = name => (style, ...children) =>
+    `<${name}${ style ? ` style = ${CSSToString(style)} ` : "" }>` +
+        children.map(render).join("") +
+    `</${name}>`;
 
 exports.div = element("div");
 exports.h1 = element("h1");
 exports.p = element("p");
 
-function render(element)
-{
-    if (typeof element === "string")
-        return element;
-
-    return render(element());
-}
+const render = element =>
+    typeof element === "string" ?
+        element :
+        render(element());
 
 exports.render = render;

@@ -1,13 +1,12 @@
 "use strict";
 
-function BinaryTree(options)
+
+module.exports = function BinaryTree(value, ...[left, right])
 {
     if (!(this instanceof BinaryTree))
-        return new BinaryTree(options);
+        return new BinaryTree(value, left, right);
 
-    const [left, right] = options.children || [];
-
-    this.value = options.value;
+    this.value = value;
 
     if (left)
         this.left = typeof left === "function" ? left() : left;
@@ -15,5 +14,3 @@ function BinaryTree(options)
     if (right)
         this.right = typeof right === "function" ? right() : right;
 }
-
-module.exports = BinaryTree;
