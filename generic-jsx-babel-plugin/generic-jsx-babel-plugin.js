@@ -1,14 +1,13 @@
 const fail = message => { throw Error(message) };
 
-const toCurriedAttributes = (t, attributes, children) =>
+const toBoundAttributes = (t, attributes, children) =>
     t.ObjectExpression(attributes
-        .map(JSXAttributeToObjectProperty(t))
-        .concat(
-            t.ObjectProperty(
-                t.Identifier("children"),
-                t.ArrayExpression(children
-                    .map(child => toChildValue(t, child))
-                    .filter(child => !t.isJSXEmptyExpression(child))))));
+        .map(JSXAttributeToObjectProperty(t)));
+
+const toChildrenArray = (t, children) =>
+    t.ArrayExpression(children
+        .map(child => toChildValue(t, child))
+        .filter(child => !t.isJSXEmptyExpression(child)));
 
 const toExpression = (t, node) =>
     t.isJSXIdentifier(node) ?
@@ -39,11 +38,14 @@ const toAttributeValue = (t, value) =>
     t.isJSXExpressionContainer(value) ? value.expression :
     fail(`Unexpected ${value.type} in JSX element`);
 
-const toCurriedFunction = (t, curry, { openingElement, children }) =>
-    t.CallExpression((curry.used = true) && curry,
+const toBoundFunction = (t, bind, { openingElement, children }) =>
+    t.CallExpression((bind.used = true) && bind,
     [
         toExpression(t, openingElement.name),
-        toCurriedAttributes(t, openingElement.attributes, children)
+        toBoundAttributes(t, openingElement.attributes, children),
+        openingElement.selfClosing ?
+            t.BooleanLiteral(false) :
+            toChildrenArray(t, children)
     ]);
 
 const toImportStatement = (t, as, source) =>
@@ -55,7 +57,7 @@ const toImportStatement = (t, as, source) =>
                 t.CallExpression(
                     t.Identifier("require"),
                     [t.StringLiteral(source)]),
-                t.Identifier("curry"))),
+                t.Identifier("bind"))),
     ]);
 
 const get = (state, name) =>
@@ -71,31 +73,31 @@ module.exports = ({ types: t }) =>
     visitor:
     {
         JSXElement: (path, state) => void(path
-            .replaceWith(toCurriedFunction(
+            .replaceWith(toBoundFunction(
                 t,
-                get(state, "curry-identifier"),
+                get(state, "bind-identifier"),
                 path.node))),
 
         Program:
         {
             enter: (path, state)  => void(
-                !get(state, "curry-identifier") &&
+                !get(state, "bind-identifier") &&
                 path.replaceWith(t.Program(
                 [
                     toImportStatement(
                         t,
                         set(
                             state,
-                            "curry-identifier",
-                            path.scope.generateUidIdentifier("curry")),
+                            "bind-identifier",
+                            path.scope.generateUidIdentifier("bind")),
                         state.opts.importSource || "generic-jsx"),
                     ...path.node.body
                 ]))),
 
             exit: (path, state) => void(
-                !get(state, "curry-identifier").used &&
-                !get(state, "curry-removed") &&
-                set(state, "curry-removed", true) &&
+                !get(state, "bind-identifier").used &&
+                !get(state, "bind-removed") &&
+                set(state, "bind-removed", true) &&
                 path.replaceWith(t.Program(path.node.body.slice(1))))
         }
     }
