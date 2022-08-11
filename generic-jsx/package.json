@@ -1,6 +1,6 @@
 {
   "name": "generic-jsx",
-  "version": "21.0.0",
+  "version": "22.0.0",
   "description": "Generalized JSX supporting curried named parameters. For full explanation see http://tolmasky.com/2016/03/24/generalizing-jsx",
   "main": "./generic-jsx",
   "repository": {
