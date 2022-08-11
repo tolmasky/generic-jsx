@@ -12,14 +12,16 @@ const
 const { parseExpression } = require("@babel/parser");
 
 const ArrayIsArray = Array.isArray;
+const ArrayMerge = (...args) => ObjectAssign([], ...args);
 
 const FunctionPrototypeToString = Function.prototype.toString;
 
 const ObjectAssign = Object.assign;
 const ObjectGetOwnPropertyNames = Object.getOwnPropertyNames;
+const ObjectFromEntries = Object.fromEntries;
 const ObjectHasOwn = Object.hasOwn;
 
-const ObjectMerge = (lhs, rhs) => ObjectAssign(lhs, rhs);
+const ObjectMerge = (...args) => ObjectAssign({ }, ...args);
 const ObjectDefinePropertyValue =
     (object, key, value) => Object.defineProperty(object, key, { value });
 
@@ -59,9 +61,9 @@ const fParse = fCached(f => given((
     restParameter = lastParameter && isRestElement(lastParameter) && lastParameter) =>
 ({
     stringified: fString,
-    toUnmergedArguments: toToArguments(params),
+    toBoundArguments: toToArguments(params),
     isArrowFunction: type === "ArrowFunctionExpression",
-    restParameterName: restParameter && restParameter.argument.name
+    length: restParameter ? params.length - 1 : params.length
 })));
 
 const MISSING = { missing: true };
@@ -72,7 +74,7 @@ const toToArguments = node =>
     ArrayIsArray(node) ?
         given((
             last = node.length >= 1 && node[node.length - 1],
-            rest = last && last.type === "RestElement" && last,
+            rest = last && isRestElement(last) && last,
             nonRest = rest ? node.slice(0, -1) : node,
             toRestArguments = rest ? toToArguments(rest) : () => [],
             toNonRestArguments = nonRest.map(toToArguments)) =>
@@ -101,6 +103,8 @@ const toToArguments = node =>
         toToArguments(node.argument) :
     () => void(0);
 
+const RestEntries = Symbol("RestEntries");
+
 function bind(f, attributes, children)
 {
     if (children.length === 0 &&
@@ -111,18 +115,24 @@ function bind(f, attributes, children)
     const
     {
         stringified,
-        toUnmergedArguments,
+        toBoundArguments,
         isArrowFunction,
-        restParameterName
+        length
     } = fParse(baseBindingOf);
 
-    const mergedAttributes = ObjectAssign(
-        { },
+    const mergedAttributes = ObjectMerge(
         f.attributes,
         attributes,
-        restParameterName && { [restParameterName]: children });
-    const toArguments = arguments =>
-        ObjectMerge(toUnmergedArguments(mergedAttributes), arguments);
+        children &&
+        {
+            [RestEntries]: ObjectFromEntries(children
+                .map((value, index) => [index + length, value]))
+        });
+
+    const toArguments = callArguments => ArrayMerge(
+        toBoundArguments(mergedAttributes),
+        mergedAttributes[RestEntries],
+        callArguments);
 
     const fBound = isArrowFunction ?
         (...arguments) => baseBindingOf(...toArguments(arguments)) :
@@ -140,7 +150,7 @@ function bind(f, attributes, children)
     });
 }
 
-module.export.bind = bind;
+module.exports.bind = bind;
 
 module.exports.JSXPragma = function JSXPragma(evalInScope)
 {
