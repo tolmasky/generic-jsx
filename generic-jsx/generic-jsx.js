@@ -157,6 +157,6 @@ module.exports.JSXPragma = function JSXPragma(evalInScope)
     return function JSXPragma(f, attributes, ...children)
     {
         return (f, attributes, ...children) =>
-        fBind(typeof f === "string" ? resolve(f) : f, attributes, children);
+        bind(typeof f === "string" ? resolve(f) : f, attributes, children);
     }
 }
