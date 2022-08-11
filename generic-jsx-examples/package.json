@@ -1,6 +1,6 @@
 {
   "name": "@generic-jsx/examples",
-  "version": "20.0.0",
+  "version": "21.0.0",
   "description": "Generalized JSX supporting curried named parameters. For full explanation see http://tolmasky.com/2016/03/24/generalizing-jsx",
   "main": "",
   "repository": {
@@ -10,7 +10,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Francisco Ryan Tolmasky I",
+  "author": "Francisco Ryan Tolmasky I <tolmasky@gmail.com> (https://tolmasky.com/)",
   "license": "MIT",
   "dependencies": {
   },
