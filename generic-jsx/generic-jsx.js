@@ -46,7 +46,7 @@ const FunctionGetBaseBindingOf = (f, fPrevious = f) =>
 
 Function.getBindingOf = FunctionGetBindingOf;
 
-exports.getBindingOf = FunctionGetBindingOf;
+module.exports.getBindingOf = FunctionGetBindingOf;
 
 const fParseBindingOf = f => given((
     bindingOf = FunctionGetBindingOf(f)) =>
@@ -101,7 +101,7 @@ const toToArguments = node =>
         toToArguments(node.argument) :
     () => void(0);
 
-function fBind(f, attributes, children)
+function bind(f, attributes, children)
 {
     if (children.length === 0 &&
         ObjectGetOwnPropertyNames(attributes).length === 0)
@@ -140,7 +140,9 @@ function fBind(f, attributes, children)
     });
 }
 
-exports.JSXPragma = function JSXPragma(evalInScope)
+module.export.bind = bind;
+
+module.exports.JSXPragma = function JSXPragma(evalInScope)
 {
     return function JSXPragma(f, attributes, ...children)
     {
