@@ -10,12 +10,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Francisco Ryan Tolmasky I",
+  "author": "Francisco Ryan Tolmasky I <tolmasky@gmail.com> (https://tolmasky.com/)",
   "license": "MIT",
-  "dependencies": {
-  },
   "engines": {
     "node": ">=4.x.x"
   },
-  "runkitExampleFilename": "runkitExample.js"
+  "runkitExampleFilename": "runkitExample.js",
+  "dependencies": {
+    "@babel/parser": "^7.18.11",
+    "@babel/types": "^7.18.10"
+  }
 }
